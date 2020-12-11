@@ -13,6 +13,16 @@
         <element id="directory" name="classes">
           <element id="module-output" name="lab1coa" />
         </element>
+        <element id="directory" name="lib">
+          <element id="library" level="project" name="Maven: org.javalite:activejdbc:1.4.13" />
+          <element id="library" level="project" name="Maven: org.slf4j:slf4j-api:1.7.5" />
+          <element id="library" level="project" name="Maven: org.javalite:javalite-common:1.4.13" />
+          <element id="library" level="project" name="Maven: org.codehaus.jackson:jackson-core-asl:1.9.13" />
+          <element id="library" level="project" name="Maven: org.codehaus.jackson:jackson-mapper-asl:1.9.13" />
+          <element id="library" level="project" name="Maven: org.javalite:app-config:1.4.13" />
+          <element id="library" level="project" name="Maven: org.postgresql:postgresql:42.2.18" />
+          <element id="library" level="project" name="Maven: org.checkerframework:checker-qual:3.5.0" />
+        </element>
       </element>
       <element id="directory" name="META-INF">
         <element id="file-copy" path="$PROJECT_DIR$/target/lab1coa-1.0-SNAPSHOT/META-INF/MANIFEST.MF" />
