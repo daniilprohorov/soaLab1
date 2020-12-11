@@ -28,18 +28,47 @@ public class Product extends Model {
             return false;
         }
     }
+
+    public void update(String name, String x, String y, String price, String unitofmeasure, String manufacturer) {
+        Optional nameOptional = nameIsValid(name);
+        Optional xOptional = xIsValid(x);
+        Optional yOptional = yIsValid(y);
+        Optional priceOptional = priceIsValid(price);
+        Optional unitofmeasureOptional = unitofmeasureIsValid(unitofmeasure);
+        Optional manufacturerOptional = manufacturerIsValid(manufacturer);
+        if (nameOptional.isPresent()) {
+            this.setString("name", nameOptional.get());
+        }
+        if (xOptional.isPresent()) {
+            this.set("x", xOptional.get());
+        }
+        if (yOptional.isPresent()) {
+            this.set("y", yOptional.get());
+        }
+        if (priceOptional.isPresent()) {
+            this.set("price", priceOptional.get());
+        }
+        if (unitofmeasureOptional.isPresent()) {
+            this.setString("unitofmeasure", unitofmeasureOptional.get());
+        }
+        if (manufacturerOptional.isPresent() ) {
+            this.set("manufacturer", manufacturerOptional.get());
+        }
+        this.save();
+    }
     public String getName(){
         return getString("name");
     }
+
     public Optional<String> nameIsValid(String name) {
-        if (!name.isEmpty()) {
+        if (name != null && !name.isEmpty()) {
             return Optional.of(name);
         } else {
             return Optional.empty();
         }
     }
     public Optional<Long> xIsValid(String x) {
-        if (!x.isEmpty()) {
+        if (x != null && !x.isEmpty()) {
             try {
                 Long xl = Long.valueOf(x);
                 return Optional.of(xl);
@@ -53,7 +82,7 @@ public class Product extends Model {
         }
     }
     public Optional<Float> yIsValid(String y) {
-        if (!y.isEmpty()) {
+        if (y != null && !y.isEmpty()) {
             try {
                 Float yf = Float.valueOf(y);
                 if (yf > -400) {
@@ -71,7 +100,7 @@ public class Product extends Model {
         }
     }
     public Optional<Integer> priceIsValid(String price) {
-        if (!price.isEmpty()) {
+        if (price != null && !price.isEmpty()) {
             try {
                 Integer pricei = Integer.valueOf(price);
                 return Optional.of(pricei);
@@ -85,7 +114,7 @@ public class Product extends Model {
         }
     }
     public Optional<String> unitofmeasureIsValid(String unitofmeasure) {
-        if (!unitofmeasure.isEmpty()) {
+        if (unitofmeasure != null && !unitofmeasure.isEmpty()) {
             if (unitofmeasure.equals("kilograms") || unitofmeasure.equals("centimeters") || unitofmeasure.equals("square_meters") || unitofmeasure.equals("pcs")) {
                 return Optional.of(unitofmeasure);
             } else {
@@ -97,7 +126,7 @@ public class Product extends Model {
 
     }
     public Optional<Integer> manufacturerIsValid(String manufacturer) {
-        if (!manufacturer.isEmpty()) {
+        if (manufacturer != null && !manufacturer.isEmpty()) {
             try {
                 Integer mi = Integer.valueOf(manufacturer);
                 List<Organization> resultList = Organization.where("id = ?", mi);
