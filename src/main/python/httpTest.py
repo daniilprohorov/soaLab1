@@ -26,6 +26,16 @@ orgCreateResponce = requests.post(urlOrganizations, data=org1data)
 print('Organization create')
 print(orgCreateResponce.content)
 
+orgDeleteResponce = requests.delete(urlOrganizations + '/2')
+print('Organization delete')
+print(orgDeleteResponce)
+print(orgDeleteResponce.content)
+
+orgPatchData = {'name': 'LOOOL234124', 'fullname': 'lolkek', 'employeescount': 999}
+orgPatchResponce = requests.put(urlOrganizations + '/1', data=orgPatchData)
+print('Product patch')
+print(orgPatchResponce)
+print(orgPatchResponce.content)
 
 
 

@@ -36,17 +36,176 @@ public class ProductServlet extends HttpServlet {
         Base.close();
     }
 
+    protected Boolean filterProduct(Product prd, String idStr, String nameStr, String xStr, String yStr, String dateStr, String priceStr, String unitofmeasureStr, String manufacturerStr) {
+        Optional id = prd.idIsValid(idStr);
+        Optional name = prd.nameIsValid(nameStr);
+        Optional x = prd.xIsValid(xStr);
+        Optional y = prd.yIsValid(yStr);
+        Optional date = prd.dateIsValid(dateStr);
+        Optional price = prd.priceIsValid(priceStr);
+        Optional unitofmeasure = prd.unitofmeasureIsValid(unitofmeasureStr);
+        Optional manufacturer = prd.manufacturerIsValid(manufacturerStr);
+
+        if (id.isPresent() && prd.get("id") != id.get()) {
+            return false;
+        }
+        if (name.isPresent() && prd.get("name") != name.get()) {
+            return false;
+        }
+        if (x.isPresent() && prd.get("x") != x.get()) {
+            return false;
+        }
+        if (y.isPresent() && prd.get("y") != y.get()) {
+            return false;
+        }
+        if (date.isPresent() && prd.get("creationdate") != date.get()) {
+            return false;
+        }
+        if (price.isPresent() && prd.get("price") != price.get()) {
+            return false;
+        }
+        if (unitofmeasure.isPresent() && prd.get("unitofmeasure") != unitofmeasure.get()) {
+            return false;
+        }
+        if (manufacturer.isPresent() && prd.get("manufacturer") != manufacturer.get()) {
+            return false;
+        }
+        return true;
+
+    }
+
+    protected List<Product> filterProductsDB(String idStr, String nameStr, String xStr, String yStr, String dateStr, String priceStr, String unitofmeasureStr, String manufacturerStr) {
+        Product p = new Product();
+        Optional id = p.idIsValid(idStr);
+        Optional name = p.nameIsValid(nameStr);
+        Optional x = p.xIsValid(xStr);
+        Optional y = p.yIsValid(yStr);
+        Optional date = p.dateIsValid(dateStr);
+        Optional price = p.priceIsValid(priceStr);
+        Optional unitofmeasure = p.unitofmeasureIsValid(unitofmeasureStr);
+        Optional manufacturer = p.manufacturerIsValid(manufacturerStr);
+        String filterStr = "";
+        if (id.isPresent()) {
+            filterStr = filterStr.concat("id = " + id.get().toString());
+        }
+        if (name.isPresent()) {
+            if (filterStr.isEmpty()) {
+                filterStr = filterStr.concat("name = '" + name.get() + "'");
+            } else {
+                filterStr = filterStr.concat(" and name = '" + name.get() + "'");
+            }
+        }
+        if (x.isPresent()) {
+            if (filterStr.isEmpty()) {
+                filterStr = filterStr.concat("x = " + x.get().toString());
+            } else {
+                filterStr = filterStr.concat(" and x = " + x.get().toString());
+            }
+        }
+        if (y.isPresent()) {
+            if (filterStr.isEmpty()) {
+                filterStr = filterStr.concat("y = " + y.get().toString());
+            } else {
+                filterStr = filterStr.concat(" and y = " + y.get().toString());
+            }
+        }
+        if (date.isPresent()) {
+            if (filterStr.isEmpty()) {
+                filterStr = filterStr.concat("creationdate = '" + date.get().toString() + "'");
+            } else {
+                filterStr = filterStr.concat(" and creationdate = '" + date.get().toString() + "'");
+            }
+        }
+        if (price.isPresent()) {
+            if (filterStr.isEmpty()) {
+                filterStr = filterStr.concat("price = " + price.get().toString());
+            } else {
+                filterStr = filterStr.concat(" and price = " + price.get().toString());
+            }
+        }
+        if (unitofmeasure.isPresent()) {
+            if (filterStr.isEmpty()) {
+                filterStr = filterStr.concat("unitofmeasure = '" + unitofmeasure.get() + "'");
+            } else {
+                filterStr = filterStr.concat(" and unitofmeasure = '" + unitofmeasure.get() + "'");
+            }
+        }
+        if (manufacturer.isPresent()) {
+            if (filterStr.isEmpty()) {
+                filterStr = filterStr.concat("manufacturer = " + manufacturer.get().toString());
+            } else {
+                filterStr = filterStr.concat(" and manufacturer = " + manufacturer.get().toString());
+            }
+        }
+        List<Product> products = Product.where(filterStr);
+        return products;
+    }
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         Base.open("org.postgresql.Driver", "jdbc:postgresql://localhost:5432/base", "daniil", "1");
         response.setContentType("text/xml;charset=UTF-8");
         String pathInfo = request.getPathInfo();
+        String itemsPerPageStr = request.getParameter("itemsperpage");
+        String pageStr = request.getParameter("page");
+
+        String filterByIdStr = request.getParameter("filter-by-id");
+        String filterByNameStr = request.getParameter("filter-by-name");
+        String filterByXStr = request.getParameter("filter-by-x");
+        String filterByYStr = request.getParameter("filter-by-y");
+        String filterByDateStr = request.getParameter("filter-by-date");
+        String filterByPriceStr = request.getParameter("filter-by-price");
+        String filterByUnitofmeasureStr = request.getParameter("filter-by-unitofmeasure");
+        String filterByManufacturerStr = request.getParameter("filter-by-manufacturer");
+
+        Boolean filter = false;
+
+        if (filterByIdStr != null
+                || filterByNameStr != null
+                || filterByXStr != null
+                || filterByYStr != null
+                || filterByDateStr != null
+                || filterByPriceStr != null
+                || filterByUnitofmeasureStr != null
+                || filterByManufacturerStr != null ) {
+            filter = true;
+        }
+
         if (pathInfo == null) {
             // return list of product
-            // TODO: сделать пагинацию!
-            List<Product> prds = Product.findAll();
             PrintWriter writer = response.getWriter();
-            writer.println(((LazyList<Product>) prds).toXml(true, true));
+
+            LazyList<Product> products;
+            List<Product> prds;
+            if (filter) {
+                prds = filterProductsDB(filterByIdStr, filterByNameStr, filterByXStr, filterByYStr, filterByDateStr, filterByPriceStr, filterByUnitofmeasureStr, filterByManufacturerStr);
+                if (prds.isEmpty()) {
+                    response.setStatus(404);
+                    Base.close();
+                    return;
+                }
+            } else {
+                prds = Product.findAll();
+            }
+            products = (LazyList<Product>) prds;
+            if (itemsPerPageStr == null) {
+                writer.println(products.toXml(true, true));
+            } else {
+                Integer itemsPerPage;
+                Integer page;
+                try {
+                    itemsPerPage = Integer.valueOf(itemsPerPageStr);
+                    page = Integer.valueOf(pageStr);
+                }
+                catch (NumberFormatException e) {
+                    System.out.println(e.getMessage());
+                    response.setStatus(422);
+                    Base.close();
+                    return;
+                }
+                writer.println(products.offset(itemsPerPage * (page - 1)).limit(itemsPerPage).toXml(true, true));
+
+
+            }
 
         } else {
             // return product with id

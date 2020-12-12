@@ -2,6 +2,7 @@ import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.Model;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,6 +61,24 @@ public class Product extends Model {
         return getString("name");
     }
 
+    public Optional<Integer> idIsValid(String id) {
+        if (id != null && !id.isEmpty()) {
+            try {
+                Integer idI = Integer.valueOf(id);
+                if (idI > 0) {
+                    return Optional.of(idI);
+                } else {
+                    return Optional.empty();
+                }
+            }
+            catch (NumberFormatException e) {
+                System.out.println(e.getMessage());
+                return Optional.empty();
+            }
+        } else {
+            return Optional.empty();
+        }
+    }
     public Optional<String> nameIsValid(String name) {
         if (name != null && !name.isEmpty()) {
             return Optional.of(name);
@@ -93,6 +112,19 @@ public class Product extends Model {
             }
             catch (NumberFormatException e) {
                 System.out.println(e.getMessage());
+                return Optional.empty();
+            }
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    public Optional<LocalDate> dateIsValid(String date) {
+        if (date != null && !date.isEmpty()) {
+            LocalDate dateD = LocalDate.parse(date);
+            if (dateD != null) {
+                return Optional.of(dateD);
+            } else {
                 return Optional.empty();
             }
         } else {
