@@ -3,10 +3,6 @@ import org.javalite.activejdbc.Model;
 import java.util.Optional;
 
 public class Organization extends Model {
-    public String getName(){
-        return getString("name");
-    }
-
     // validation
     public Boolean init(String name, String fullname, String employeescount) {
         Optional nameOptional = nameIsValid(name);
@@ -39,6 +35,24 @@ public class Organization extends Model {
         this.save();
     }
 
+    public Optional<Integer> idIsValid(String id) {
+        if (id != null && !id.isEmpty()) {
+            try {
+                Integer idI = Integer.valueOf(id);
+                if (idI > 0) {
+                    return Optional.of(idI);
+                } else {
+                    return Optional.empty();
+                }
+            }
+            catch (NumberFormatException e) {
+                System.out.println(e.getMessage());
+                return Optional.empty();
+            }
+        } else {
+            return Optional.empty();
+        }
+    }
     public Optional<String> nameIsValid(String name) {
         if (name != null && !name.isEmpty()) {
             return Optional.of(name);

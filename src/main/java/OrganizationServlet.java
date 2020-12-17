@@ -13,6 +13,41 @@ import java.util.Optional;
 
 @WebServlet(urlPatterns={"/organizations/*"})
 public class OrganizationServlet extends HttpServlet {
+
+    protected List<Organization> filterOrganizationsDB(String idStr, String nameStr, String fullnameStr, String employeescountStr) {
+        Organization o = new Organization();
+        Optional id = o.idIsValid(idStr);
+        Optional name = o.nameIsValid(nameStr);
+        Optional fullname = o.fullnameIsValid(fullnameStr);
+        Optional employeescount = o.employeescountIsValid(employeescountStr);
+        String filterStr = "";
+        if (id.isPresent()) {
+            filterStr = filterStr.concat("id = " + id.get().toString());
+        }
+        if (name.isPresent()) {
+            if (filterStr.isEmpty()) {
+                filterStr = filterStr.concat("name = '" + name.get() + "'");
+            } else {
+                filterStr = filterStr.concat(" and name = '" + name.get() + "'");
+            }
+        }
+        if (fullname.isPresent()) {
+            if (filterStr.isEmpty()) {
+                filterStr = filterStr.concat("fullname = '" + fullname.get().toString() + "'");
+            } else {
+                filterStr = filterStr.concat(" and fullname = '" + fullname.get().toString() + "'");
+            }
+        }
+        if (employeescount.isPresent()) {
+            if (filterStr.isEmpty()) {
+                filterStr = filterStr.concat("employeescount = " + employeescount.get().toString());
+            } else {
+                filterStr = filterStr.concat(" and employeescount = " + employeescount.get().toString());
+            }
+        }
+        List<Organization> organizations = Organization.where(filterStr);
+        return organizations;
+    }
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         PrintWriter writer = response.getWriter();
 
@@ -35,12 +70,54 @@ public class OrganizationServlet extends HttpServlet {
         Base.open("org.postgresql.Driver", "jdbc:postgresql://localhost:5432/base", "daniil", "1");
         response.setContentType("text/xml;charset=UTF-8");
         String pathInfo = request.getPathInfo();
+        String itemsPerPageStr = request.getParameter("itemsperpage");
+        String pageStr = request.getParameter("page");
+
+        String filterByIdStr = request.getParameter("filter-by-id");
+        String filterByNameStr = request.getParameter("filter-by-name");
+        String filterByFullnameStr = request.getParameter("filter-by-fullname");
+        String filterByEmployeescountStr = request.getParameter("filter-by-employeescount");
+
+        Boolean filter = false;
+
+        if (filterByIdStr != null
+                || filterByNameStr != null
+                || filterByFullnameStr != null
+                || filterByEmployeescountStr != null) {
+            filter = true;
+        }
         if (pathInfo == null) {
             // return list of product
-            // TODO: сделать пагинацию!
-            List<Organization> orgs = Organization.findAll();
             PrintWriter writer = response.getWriter();
-            writer.println(((LazyList<Organization>) orgs).toXml(true, true));
+            List<Organization> orgs;
+            if (filter) {
+                orgs = filterOrganizationsDB(filterByIdStr, filterByNameStr, filterByFullnameStr, filterByEmployeescountStr);
+                if (orgs.isEmpty()) {
+                    response.setStatus(404);
+                    Base.close();
+                    return;
+                }
+            } else {
+                orgs = Organization.findAll();
+            }
+            LazyList<Organization> organizations = (LazyList<Organization>) orgs;
+
+            if (itemsPerPageStr == null) {
+                writer.println(organizations.toXml(true, true));
+            } else {
+                Integer itemsPerPage;
+                Integer page;
+                try {
+                    itemsPerPage = Integer.valueOf(itemsPerPageStr);
+                    page = Integer.valueOf(pageStr);
+                } catch (NumberFormatException e) {
+                    System.out.println(e.getMessage());
+                    response.setStatus(422);
+                    Base.close();
+                    return;
+                }
+                writer.println(organizations.offset(itemsPerPage * (page - 1)).limit(itemsPerPage).toXml(true, true));
+            }
 
         } else {
             // return product with id

@@ -5,13 +5,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 
-//@WebServlet("/products")
 @WebServlet(urlPatterns={"/products/*"})
 public class ProductServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -34,44 +35,6 @@ public class ProductServlet extends HttpServlet {
             response.setStatus(422);
         }
         Base.close();
-    }
-
-    protected Boolean filterProduct(Product prd, String idStr, String nameStr, String xStr, String yStr, String dateStr, String priceStr, String unitofmeasureStr, String manufacturerStr) {
-        Optional id = prd.idIsValid(idStr);
-        Optional name = prd.nameIsValid(nameStr);
-        Optional x = prd.xIsValid(xStr);
-        Optional y = prd.yIsValid(yStr);
-        Optional date = prd.dateIsValid(dateStr);
-        Optional price = prd.priceIsValid(priceStr);
-        Optional unitofmeasure = prd.unitofmeasureIsValid(unitofmeasureStr);
-        Optional manufacturer = prd.manufacturerIsValid(manufacturerStr);
-
-        if (id.isPresent() && prd.get("id") != id.get()) {
-            return false;
-        }
-        if (name.isPresent() && prd.get("name") != name.get()) {
-            return false;
-        }
-        if (x.isPresent() && prd.get("x") != x.get()) {
-            return false;
-        }
-        if (y.isPresent() && prd.get("y") != y.get()) {
-            return false;
-        }
-        if (date.isPresent() && prd.get("creationdate") != date.get()) {
-            return false;
-        }
-        if (price.isPresent() && prd.get("price") != price.get()) {
-            return false;
-        }
-        if (unitofmeasure.isPresent() && prd.get("unitofmeasure") != unitofmeasure.get()) {
-            return false;
-        }
-        if (manufacturer.isPresent() && prd.get("manufacturer") != manufacturer.get()) {
-            return false;
-        }
-        return true;
-
     }
 
     protected List<Product> filterProductsDB(String idStr, String nameStr, String xStr, String yStr, String dateStr, String priceStr, String unitofmeasureStr, String manufacturerStr) {
@@ -142,6 +105,7 @@ public class ProductServlet extends HttpServlet {
     }
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+        response.addHeader("Access-Control-Allow-Origin", "*");
         Base.open("org.postgresql.Driver", "jdbc:postgresql://localhost:5432/base", "daniil", "1");
         response.setContentType("text/xml;charset=UTF-8");
         String pathInfo = request.getPathInfo();
@@ -156,6 +120,7 @@ public class ProductServlet extends HttpServlet {
         String filterByPriceStr = request.getParameter("filter-by-price");
         String filterByUnitofmeasureStr = request.getParameter("filter-by-unitofmeasure");
         String filterByManufacturerStr = request.getParameter("filter-by-manufacturer");
+        String sortBy = request.getParameter("sortBy");
 
         Boolean filter = false;
 
@@ -188,7 +153,18 @@ public class ProductServlet extends HttpServlet {
             }
             products = (LazyList<Product>) prds;
             if (itemsPerPageStr == null) {
-                writer.println(products.toXml(true, true));
+                if (sortBy == null) {
+                    writer.println(products.toXml(true, true));
+                } else {
+                    List<String> sortByFields = Arrays.asList("id", "name", "x", "y", "creationdate", "price", "unitofmeasure", "manufacturer");
+                    if (sortByFields.contains(sortBy)){
+                        writer.println(products.orderBy(sortBy).toXml(true, true));
+                    } else {
+                        response.setStatus(404);
+                        Base.close();
+                        return;
+                    }
+                }
             } else {
                 Integer itemsPerPage;
                 Integer page;
