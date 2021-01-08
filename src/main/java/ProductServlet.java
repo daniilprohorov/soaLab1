@@ -17,6 +17,7 @@ import org.javalite.activejdbc.LazyList;
 public class ProductServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+        response.addHeader("Access-Control-Allow-Origin", "*");
         PrintWriter writer = response.getWriter();
 
         String name = request.getParameter("name");
@@ -178,7 +179,16 @@ public class ProductServlet extends HttpServlet {
                     Base.close();
                     return;
                 }
-                writer.println(products.offset(itemsPerPage * (page - 1)).limit(itemsPerPage).toXml(true, true));
+//                writer.println(products.offset(itemsPerPage * (page - 1)).limit(itemsPerPage).toXml(true, true));
+
+                List<String> sortByFields = Arrays.asList("id", "name", "x", "y", "creationdate", "price", "unitofmeasure", "manufacturer");
+                if (sortByFields.contains(sortBy)){
+                    writer.println(products.orderBy(sortBy).offset(itemsPerPage * (page - 1)).limit(itemsPerPage).toXml(true, true));
+                } else {
+                    response.setStatus(404);
+                    Base.close();
+                    return;
+                }
 
 
             }
@@ -218,6 +228,8 @@ public class ProductServlet extends HttpServlet {
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Base.open("org.postgresql.Driver", "jdbc:postgresql://localhost:5432/base", "daniil", "1");
         response.setContentType("text/xml;charset=UTF-8");
+
+        response.addHeader("Access-Control-Allow-Origin", "*");
         String pathInfo = request.getPathInfo();
         if (pathInfo == null) {
             response.setStatus(404);
@@ -251,6 +263,7 @@ public class ProductServlet extends HttpServlet {
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Base.open("org.postgresql.Driver", "jdbc:postgresql://localhost:5432/base", "daniil", "1");
         response.setContentType("text/xml;charset=UTF-8");
+        response.addHeader("Access-Control-Allow-Origin", "*");
         String pathInfo = request.getPathInfo();
         if (pathInfo == null) {
             response.setStatus(404);

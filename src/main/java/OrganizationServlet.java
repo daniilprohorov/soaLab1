@@ -49,6 +49,7 @@ public class OrganizationServlet extends HttpServlet {
         return organizations;
     }
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.addHeader("Access-Control-Allow-Origin", "*");
         PrintWriter writer = response.getWriter();
 
         String name = request.getParameter("name");
@@ -67,6 +68,8 @@ public class OrganizationServlet extends HttpServlet {
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        response.addHeader("Access-Control-Allow-Origin", "*");
         Base.open("org.postgresql.Driver", "jdbc:postgresql://localhost:5432/base", "daniil", "1");
         response.setContentType("text/xml;charset=UTF-8");
         String pathInfo = request.getPathInfo();
@@ -152,6 +155,8 @@ public class OrganizationServlet extends HttpServlet {
     }
 
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        response.addHeader("Access-Control-Allow-Origin", "*");
         Base.open("org.postgresql.Driver", "jdbc:postgresql://localhost:5432/base", "daniil", "1");
         response.setContentType("text/xml;charset=UTF-8");
         String pathInfo = request.getPathInfo();
@@ -185,6 +190,8 @@ public class OrganizationServlet extends HttpServlet {
     }
 
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        response.addHeader("Access-Control-Allow-Origin", "*");
         Base.open("org.postgresql.Driver", "jdbc:postgresql://localhost:5432/base", "daniil", "1");
         response.setContentType("text/xml;charset=UTF-8");
         String pathInfo = request.getPathInfo();
