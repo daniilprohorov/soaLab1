@@ -8,11 +8,31 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 @WebServlet(urlPatterns={"/organizations/*"})
 public class OrganizationServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        PrintWriter writer = response.getWriter();
+
+        String name = request.getParameter("name");
+        String fullname = request.getParameter("fullname");
+        String employeescount = request.getParameter("employeescount");
+
+        DbConfig config = new DbConfig();
+        Base.open(config.driver, config.url, config.name, config.password);
+        Organization org1 = new Organization();
+        Boolean initialized = org1.init(name, fullname, employeescount);
+        if (initialized) {
+            writer.println(org1.toXml(true, true));
+        } else {
+            response.setStatus(422);
+        }
+        Base.close();
+    }
 
     protected List<Organization> filterOrganizationsDB(String idStr, String nameStr, String fullnameStr, String employeescountStr) {
         Organization o = new Organization();
@@ -48,29 +68,13 @@ public class OrganizationServlet extends HttpServlet {
         List<Organization> organizations = Organization.where(filterStr);
         return organizations;
     }
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.addHeader("Access-Control-Allow-Origin", "*");
-        PrintWriter writer = response.getWriter();
-
-        String name = request.getParameter("name");
-        String fullname = request.getParameter("fullname");
-        String employeescount = request.getParameter("employeescount");
-
-        Base.open("org.postgresql.Driver", "jdbc:postgresql://localhost:5432/base", "daniil", "1");
-        Organization org1 = new Organization();
-        Boolean initialized = org1.init(name, fullname, employeescount);
-        if (initialized) {
-            writer.println(org1.toXml(true, true));
-        } else {
-            response.setStatus(422);
-        }
-        Base.close();
-    }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         response.addHeader("Access-Control-Allow-Origin", "*");
-        Base.open("org.postgresql.Driver", "jdbc:postgresql://localhost:5432/base", "daniil", "1");
+
+        DbConfig config = new DbConfig();
+        Base.open(config.driver, config.url, config.name, config.password);
         response.setContentType("text/xml;charset=UTF-8");
         String pathInfo = request.getPathInfo();
         String itemsPerPageStr = request.getParameter("itemsperpage");
@@ -80,6 +84,9 @@ public class OrganizationServlet extends HttpServlet {
         String filterByNameStr = request.getParameter("filter-by-name");
         String filterByFullnameStr = request.getParameter("filter-by-fullname");
         String filterByEmployeescountStr = request.getParameter("filter-by-employeescount");
+        String sortBy = request.getParameter("sortBy");
+
+
 
         Boolean filter = false;
 
@@ -104,9 +111,19 @@ public class OrganizationServlet extends HttpServlet {
                 orgs = Organization.findAll();
             }
             LazyList<Organization> organizations = (LazyList<Organization>) orgs;
-
             if (itemsPerPageStr == null) {
-                writer.println(organizations.toXml(true, true));
+                if (sortBy == null) {
+                    writer.println(organizations.toXml(true, true));
+                } else {
+                    List<String> sortByFields = Arrays.asList("id", "name", "fullname", "employeescount");
+                    if (sortByFields.contains(sortBy)){
+                        writer.println(organizations.orderBy(sortBy).toXml(true, true));
+                    } else {
+                        response.setStatus(404);
+                        Base.close();
+                        return;
+                    }
+                }
             } else {
                 Integer itemsPerPage;
                 Integer page;
@@ -119,7 +136,19 @@ public class OrganizationServlet extends HttpServlet {
                     Base.close();
                     return;
                 }
-                writer.println(organizations.offset(itemsPerPage * (page - 1)).limit(itemsPerPage).toXml(true, true));
+
+                if (sortBy == null) {
+                    writer.println(organizations.offset(itemsPerPage * (page - 1)).limit(itemsPerPage).toXml(true, true));
+                } else {
+                    List<String> sortByFields = Arrays.asList("id", "name", "fullname", "employeescount");
+                    if (sortByFields.contains(sortBy)){
+                        writer.println(organizations.orderBy(sortBy).offset(itemsPerPage * (page - 1)).limit(itemsPerPage).toXml(true, true));
+                    } else {
+                        response.setStatus(404);
+                        Base.close();
+                        return;
+                    }
+                }
             }
 
         } else {
@@ -157,7 +186,9 @@ public class OrganizationServlet extends HttpServlet {
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         response.addHeader("Access-Control-Allow-Origin", "*");
-        Base.open("org.postgresql.Driver", "jdbc:postgresql://localhost:5432/base", "daniil", "1");
+
+        DbConfig config = new DbConfig();
+        Base.open(config.driver, config.url, config.name, config.password);
         response.setContentType("text/xml;charset=UTF-8");
         String pathInfo = request.getPathInfo();
         if (pathInfo == null) {
@@ -192,7 +223,10 @@ public class OrganizationServlet extends HttpServlet {
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         response.addHeader("Access-Control-Allow-Origin", "*");
-        Base.open("org.postgresql.Driver", "jdbc:postgresql://localhost:5432/base", "daniil", "1");
+
+        DbConfig config = new DbConfig();
+        Base.open(config.driver, config.url, config.name, config.password);
+
         response.setContentType("text/xml;charset=UTF-8");
         String pathInfo = request.getPathInfo();
         if (pathInfo == null) {
