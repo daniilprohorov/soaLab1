@@ -1,3 +1,6 @@
+import org.javalite.activejdbc.Base;
+import org.javalite.activejdbc.LazyList;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -5,13 +8,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-
-import org.javalite.activejdbc.Base;
-import org.javalite.activejdbc.LazyList;
 
 @WebServlet(urlPatterns={"/products/*"})
 public class ProductServlet extends HttpServlet {
@@ -27,7 +26,8 @@ public class ProductServlet extends HttpServlet {
         String unitofmeasure = request.getParameter("unitofmeasure");
         String manufacturer = request.getParameter("manufacturer");
 
-        Base.open("org.postgresql.Driver", "jdbc:postgresql://localhost:5432/base", "daniil", "1");
+        DbConfig config = new DbConfig();
+        Base.open(config.driver, config.url, config.name, config.password);
         Product prd1 = new Product();
         Boolean initialized = prd1.init(name, x, y, price, unitofmeasure, manufacturer);
         if (initialized) {
@@ -107,7 +107,9 @@ public class ProductServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         response.addHeader("Access-Control-Allow-Origin", "*");
-        Base.open("org.postgresql.Driver", "jdbc:postgresql://localhost:5432/base", "daniil", "1");
+
+        DbConfig config = new DbConfig();
+        Base.open(config.driver, config.url, config.name, config.password);
         response.setContentType("text/xml;charset=UTF-8");
         String pathInfo = request.getPathInfo();
         String itemsPerPageStr = request.getParameter("itemsperpage");
@@ -181,16 +183,18 @@ public class ProductServlet extends HttpServlet {
                 }
 //                writer.println(products.offset(itemsPerPage * (page - 1)).limit(itemsPerPage).toXml(true, true));
 
-                List<String> sortByFields = Arrays.asList("id", "name", "x", "y", "creationdate", "price", "unitofmeasure", "manufacturer");
-                if (sortByFields.contains(sortBy)){
-                    writer.println(products.orderBy(sortBy).offset(itemsPerPage * (page - 1)).limit(itemsPerPage).toXml(true, true));
+                if (sortBy == null) {
+                    writer.println(products.offset(itemsPerPage * (page - 1)).limit(itemsPerPage).toXml(true, true));
                 } else {
-                    response.setStatus(404);
-                    Base.close();
-                    return;
+                    List<String> sortByFields = Arrays.asList("id", "name", "x", "y", "creationdate", "price", "unitofmeasure", "manufacturer");
+                    if (sortByFields.contains(sortBy)){
+                        writer.println(products.orderBy(sortBy).offset(itemsPerPage * (page - 1)).limit(itemsPerPage).toXml(true, true));
+                    } else {
+                        response.setStatus(404);
+                        Base.close();
+                        return;
+                    }
                 }
-
-
             }
 
         } else {
@@ -226,7 +230,10 @@ public class ProductServlet extends HttpServlet {
     }
 
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        Base.open("org.postgresql.Driver", "jdbc:postgresql://localhost:5432/base", "daniil", "1");
+
+        DbConfig config = new DbConfig();
+        Base.open(config.driver, config.url, config.name, config.password);
+
         response.setContentType("text/xml;charset=UTF-8");
 
         response.addHeader("Access-Control-Allow-Origin", "*");
@@ -250,6 +257,7 @@ public class ProductServlet extends HttpServlet {
                 List<Product> prds = Product.where("id = ?", id.get());
                 if (!prds.isEmpty()){
                     prds.get(0).delete();
+                    response.setStatus(200);
                 } else {
                     response.setStatus(404);
                 }
@@ -261,7 +269,9 @@ public class ProductServlet extends HttpServlet {
     }
 
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        Base.open("org.postgresql.Driver", "jdbc:postgresql://localhost:5432/base", "daniil", "1");
+
+        DbConfig config = new DbConfig();
+        Base.open(config.driver, config.url, config.name, config.password);
         response.setContentType("text/xml;charset=UTF-8");
         response.addHeader("Access-Control-Allow-Origin", "*");
         String pathInfo = request.getPathInfo();

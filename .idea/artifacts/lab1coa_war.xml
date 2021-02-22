@@ -1,13 +1,7 @@
 <component name="ArtifactManager">
   <artifact type="war" name="lab1coa:war">
     <output-path>$PROJECT_DIR$/target</output-path>
-    <properties id="maven-jee-properties">
-      <options>
-        <module>lab1coa</module>
-        <packaging>war</packaging>
-      </options>
-    </properties>
-    <root id="archive" name="lab1coa-1.0-SNAPSHOT.war">
+    <root id="archive" name="lab1coa_war.war">
       <element id="artifact" artifact-name="lab1coa:war exploded" />
     </root>
   </artifact>

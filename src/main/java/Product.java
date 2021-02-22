@@ -1,5 +1,3 @@
-import org.javalite.activejdbc.Base;
-import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.Model;
 
 import java.time.LocalDate;
