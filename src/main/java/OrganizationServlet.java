@@ -1,16 +1,24 @@
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @WebServlet(urlPatterns={"/organizations/*"})
 public class OrganizationServlet extends HttpServlet {
@@ -18,9 +26,25 @@ public class OrganizationServlet extends HttpServlet {
         response.addHeader("Access-Control-Allow-Origin", "*");
         PrintWriter writer = response.getWriter();
 
-        String name = request.getParameter("name");
-        String fullname = request.getParameter("fullname");
-        String employeescount = request.getParameter("employeescount");
+        String text = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = null;
+        try {
+            builder = factory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        }
+        InputSource is = new InputSource(new StringReader(text));
+        Document doc = null;
+        try {
+            doc = builder.parse(is);
+        } catch (SAXException e) {
+            e.printStackTrace();
+        }
+
+        String name = doc.getElementsByTagName("name").item(0).getTextContent();
+        String fullname = doc.getElementsByTagName("fullname").item(0).getTextContent();
+        String employeescount = doc.getElementsByTagName("employeescount").item(0).getTextContent();
 
         DbConfig config = new DbConfig();
         Base.open(config.driver, config.url, config.name, config.password);
@@ -248,9 +272,25 @@ public class OrganizationServlet extends HttpServlet {
                 List<Organization> orgs = Organization.where("id = ?", id.get());
                 if (!orgs.isEmpty()){
 
-                    String name = request.getParameter("name");
-                    String fullname = request.getParameter("fullname");
-                    String employeescount = request.getParameter("employeescount");
+                    String text = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+                    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                    DocumentBuilder builder = null;
+                    try {
+                        builder = factory.newDocumentBuilder();
+                    } catch (ParserConfigurationException e) {
+                        e.printStackTrace();
+                    }
+                    InputSource is = new InputSource(new StringReader(text));
+                    Document doc = null;
+                    try {
+                        doc = builder.parse(is);
+                    } catch (SAXException e) {
+                        e.printStackTrace();
+                    }
+
+                    String name = doc.getElementsByTagName("name").item(0).getTextContent();
+                    String fullname = doc.getElementsByTagName("fullname").item(0).getTextContent();
+                    String employeescount = doc.getElementsByTagName("employeescount").item(0).getTextContent();
 
                     orgs.get(0).update(name, fullname, employeescount);
 

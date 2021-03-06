@@ -1,16 +1,24 @@
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @WebServlet(urlPatterns={"/products/*"})
 public class ProductServlet extends HttpServlet {
@@ -19,12 +27,27 @@ public class ProductServlet extends HttpServlet {
         response.addHeader("Access-Control-Allow-Origin", "*");
         PrintWriter writer = response.getWriter();
 
-        String name = request.getParameter("name");
-        String x = request.getParameter("x");
-        String y = request.getParameter("y");
-        String price = request.getParameter("price");
-        String unitofmeasure = request.getParameter("unitofmeasure");
-        String manufacturer = request.getParameter("manufacturer");
+        String text = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = null;
+        try {
+            builder = factory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        }
+        InputSource is = new InputSource(new StringReader(text));
+        Document doc = null;
+        try {
+            doc = builder.parse(is);
+        } catch (SAXException e) {
+            e.printStackTrace();
+        }
+        String name = doc.getElementsByTagName("name").item(0).getTextContent();
+        String x = doc.getElementsByTagName("x").item(0).getTextContent();
+        String y = doc.getElementsByTagName("y").item(0).getTextContent();
+        String price = doc.getElementsByTagName("price").item(0).getTextContent();
+        String unitofmeasure = doc.getElementsByTagName("unitofmeasure").item(0).getTextContent();
+        String manufacturer = doc.getElementsByTagName("manufacturer").item(0).getTextContent();
 
         DbConfig config = new DbConfig();
         Base.open(config.driver, config.url, config.name, config.password);
@@ -294,12 +317,27 @@ public class ProductServlet extends HttpServlet {
                 List<Product> prds = Product.where("id = ?", id.get());
                 if (!prds.isEmpty()){
 
-                    String name = request.getParameter("name");
-                    String x = request.getParameter("x");
-                    String y = request.getParameter("y");
-                    String price = request.getParameter("price");
-                    String unitofmeasure = request.getParameter("unitofmeasure");
-                    String manufacturer = request.getParameter("manufacturer");
+                    String text = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+                    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                    DocumentBuilder builder = null;
+                    try {
+                        builder = factory.newDocumentBuilder();
+                    } catch (ParserConfigurationException e) {
+                        e.printStackTrace();
+                    }
+                    InputSource is = new InputSource(new StringReader(text));
+                    Document doc = null;
+                    try {
+                        doc = builder.parse(is);
+                    } catch (SAXException e) {
+                        e.printStackTrace();
+                    }
+                    String name = doc.getElementsByTagName("name").item(0).getTextContent();
+                    String x = doc.getElementsByTagName("x").item(0).getTextContent();
+                    String y = doc.getElementsByTagName("y").item(0).getTextContent();
+                    String price = doc.getElementsByTagName("price").item(0).getTextContent();
+                    String unitofmeasure = doc.getElementsByTagName("unitofmeasure").item(0).getTextContent();
+                    String manufacturer = doc.getElementsByTagName("manufacturer").item(0).getTextContent();
 
                     prds.get(0).update(name, x, y, price, unitofmeasure, manufacturer);
 
