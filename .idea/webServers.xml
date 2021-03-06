@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="4f2cfff6-c993-490a-92fb-6e2060710380" name="se.ifmo.ru" url="http://se.ifmo.ru">
+        <fileTransfer rootFolder="/home/s269380" accessType="SFTP" host="se.ifmo.ru" port="2222" sshConfigId="597df2a5-f20a-48f2-a447-e90c7785b776" sshConfig="s269380@se.ifmo.ru:2222 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

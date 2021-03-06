@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" serverName="se.ifmo.ru" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="se.ifmo.ru">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/SoaLab1/jetty-distribution-9.4.36.v20210114/webapps" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>
