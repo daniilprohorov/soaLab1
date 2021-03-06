@@ -62,7 +62,7 @@ public class ProductServlet extends HttpServlet {
         Base.close();
     }
 
-    protected List<Product> filterProductsDB(String idStr, String nameStr, String xStr, String yStr, String dateStr, String priceStr, String unitofmeasureStr, String manufacturerStr) {
+    protected Optional<List<Product>> filterProductsDB(String idStr, String nameStr, String xStr, String yStr, String dateStr, String priceStr, String unitofmeasureStr, String manufacturerStr) {
         Product p = new Product();
         Optional id = p.idIsValid(idStr);
         Optional name = p.nameIsValid(nameStr);
@@ -125,8 +125,12 @@ public class ProductServlet extends HttpServlet {
                 filterStr = filterStr.concat(" and manufacturer = " + manufacturer.get().toString());
             }
         }
-        List<Product> products = Product.where(filterStr);
-        return products;
+        if (filterStr.isEmpty()) {
+           return Optional.empty();
+        } else {
+            List<Product> products = Product.where(filterStr);
+            return Optional.of(products);
+        }
     }
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
@@ -169,8 +173,10 @@ public class ProductServlet extends HttpServlet {
             LazyList<Product> products;
             List<Product> prds;
             if (filter) {
-                prds = filterProductsDB(filterByIdStr, filterByNameStr, filterByXStr, filterByYStr, filterByDateStr, filterByPriceStr, filterByUnitofmeasureStr, filterByManufacturerStr);
-                if (prds.isEmpty()) {
+                Optional<List<Product>> filterRes = filterProductsDB(filterByIdStr, filterByNameStr, filterByXStr, filterByYStr, filterByDateStr, filterByPriceStr, filterByUnitofmeasureStr, filterByManufacturerStr);
+                if (filterRes.isPresent()) {
+                    prds = filterRes.get();
+                } else {
                     response.setStatus(404);
                     Base.close();
                     return;

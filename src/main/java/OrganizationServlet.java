@@ -58,7 +58,7 @@ public class OrganizationServlet extends HttpServlet {
         Base.close();
     }
 
-    protected List<Organization> filterOrganizationsDB(String idStr, String nameStr, String fullnameStr, String employeescountStr) {
+    protected Optional<List<Organization>> filterOrganizationsDB(String idStr, String nameStr, String fullnameStr, String employeescountStr) {
         Organization o = new Organization();
         Optional id = o.idIsValid(idStr);
         Optional name = o.nameIsValid(nameStr);
@@ -89,8 +89,13 @@ public class OrganizationServlet extends HttpServlet {
                 filterStr = filterStr.concat(" and employeescount = " + employeescount.get().toString());
             }
         }
-        List<Organization> organizations = Organization.where(filterStr);
-        return organizations;
+
+        if (filterStr.isEmpty()) {
+            return Optional.empty();
+        } else {
+            List<Organization> organizations = Organization.where(filterStr);
+            return Optional.of(organizations);
+        }
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -125,8 +130,10 @@ public class OrganizationServlet extends HttpServlet {
             PrintWriter writer = response.getWriter();
             List<Organization> orgs;
             if (filter) {
-                orgs = filterOrganizationsDB(filterByIdStr, filterByNameStr, filterByFullnameStr, filterByEmployeescountStr);
-                if (orgs.isEmpty()) {
+                Optional<List<Organization>> filterRes = filterOrganizationsDB(filterByIdStr, filterByNameStr, filterByFullnameStr, filterByEmployeescountStr);
+                if (filterRes.isPresent()) {
+                    orgs = filterRes.get();
+                } else {
                     response.setStatus(404);
                     Base.close();
                     return;
